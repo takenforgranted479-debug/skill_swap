@@ -221,7 +221,11 @@ class CreateRequestView(LoginRequiredMixin, CreateView):
                 return self.form_invalid(form)
         elif form.cleaned_data.get('offered_skill'):
             # Get offered skill from form selection
-            form.instance.offered_skill = form.cleaned_data['offered_skill']
+            offered_skill = form.cleaned_data['offered_skill']
+            form.instance.offered_skill = offered_skill
+            # Set recipient from the selected offered skill if not already set
+            if not hasattr(form.instance, 'recipient') or not form.instance.recipient:
+                form.instance.recipient = offered_skill.user
         
         # Ensure both recipient and offered_skill are set
         if not hasattr(form.instance, 'recipient') or not form.instance.recipient:
@@ -1026,17 +1030,17 @@ def session_requests_management(request):
         requester=request.user
     ).select_related('recipient', 'offered_skill', 'offered_skill__skill').order_by('-created_at')
     
-    # Get scheduled and cancelled sessions (LIFO order - most recent first)
+    # Get only scheduled sessions (excluding cancelled ones)
     scheduled_sessions = SkillSwapSession.objects.filter(
         models.Q(teacher=request.user) | models.Q(learner=request.user),
-        status__in=['scheduled', 'cancelled']
+        status='scheduled'
     ).select_related('teacher', 'learner', 'skill').order_by('-created_at')
     
-    # Get completed sessions for history
+    # Get completed and cancelled sessions for history
     completed_sessions = SkillSwapSession.objects.filter(
         models.Q(teacher=request.user) | models.Q(learner=request.user),
-        status='completed'
-    ).select_related('teacher', 'learner', 'skill').order_by('-scheduled_date')[:10]
+        status__in=['completed', 'cancelled']
+    ).select_related('teacher', 'learner', 'skill').order_by('-scheduled_date')[:20]
     
     # Filter by type for each category
     pending_received = received_requests.filter(status='pending')
@@ -1171,7 +1175,8 @@ def handle_request_action(request, request_id, action):
             return JsonResponse({
                 'success': True, 
                 'message': 'Request accepted successfully! You can now schedule the session.',
-                'request_id': swap_request.id
+                'request_id': swap_request.id,
+                'redirect_url': '/sessions/requests/'
             })
             
         elif action == 'reject':
