@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if action == 'cancel' %}Cancel Request{% else %}Reject Request{% endif %} - Campus Skill-Swap
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="gradient-bg relative overflow-hidden">
+    <div class="absolute inset-0 bg-black opacity-20"></div>
+    <div class="relative container mx-auto px-4 py-20">
+        <div class="text-center text-white">
+            <h1 class="text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+                {% if action == 'cancel' %}
+                    Cancel <span class="text-yellow-300">Request</span>
+                {% else %}
+                    Reject <span class="text-red-300">Request</span>
+                {% endif %}
+            </h1>
+            <p class="text-lg lg:text-xl mb-8 max-w-3xl mx-auto">
+                Please provide a reason to help improve our platform
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Form Section -->
+<section class="py-16 bg-gray-50">
+    <div class="container mx-auto px-4">
+        <div class="max-w-2xl mx-auto">
+            <!-- Request Summary -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Request Summary</h2>
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-graduation-cap text-blue-600"></i>
+                        <span class="font-semibold">Skill:</span>
+                        <span>{{ request.offered_skill.skill.name }}</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-user text-green-600"></i>
+                        <span class="font-semibold">
+                            {% if action == 'cancel' %}To:{% else %}From:{% endif %}
+                        </span>
+                        <span>
+                            {% if action == 'cancel' %}
+                                {{ request.recipient.get_full_name|default:request.recipient.username }}
+                            {% else %}
+                                {{ request.requester.get_full_name|default:request.requester.username }}
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-calendar text-orange-600"></i>
+                        <span class="font-semibold">Created:</span>
+                        <span>{{ request.created_at|date:"M d, Y \a\t h:i A" }}</span>
+                    </div>
+                    {% if request.message %}
+                        <div class="mt-4 p-3 bg-gray-50 rounded-lg">
+                            <span class="font-semibold text-gray-700">Original Message:</span>
+                            <p class="text-gray-600 mt-1">"{{ request.message }}"</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Rejection Form -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-6">
+                    {% if action == 'cancel' %}
+                        Why are you cancelling this request?
+                    {% else %}
+                        Why are you rejecting this request?
+                    {% endif %}
+                </h3>
+
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <!-- Reason Selection -->
+                    <div>
+                        {{ form.reason.label_tag }}
+                        {{ form.reason }}
+                        {% if form.reason.errors %}
+                            <div class="text-red-600 text-sm mt-1">
+                                {{ form.reason.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Additional Message -->
+                    <div>
+                        {{ form.message.label_tag }}
+                        {{ form.message }}
+                        {% if form.message.errors %}
+                            <div class="text-red-600 text-sm mt-1">
+                                {{ form.message.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <p class="text-sm text-gray-500 mt-1">
+                            This message will be shared with the other user to help them understand your decision.
+                        </p>
+                    </div>
+
+                    {% if form.non_field_errors %}
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                            <div class="text-red-600">
+                                {{ form.non_field_errors.0 }}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Action Buttons -->
+                    <div class="flex gap-4 pt-4">
+                        <button type="submit" 
+                                class="flex-1 bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors">
+                            <i class="fas fa-times mr-2"></i>
+                            {% if action == 'cancel' %}Cancel Request{% else %}Reject Request{% endif %}
+                        </button>
+                        <a href="{% if action == 'cancel' %}{% url 'skill_sessions:request_list' %}{% else %}{% url 'skill_sessions:received_requests' %}{% endif %}" 
+                           class="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors text-center">
+                            <i class="fas fa-arrow-left mr-2"></i>Go Back
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Help Text -->
+            <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div class="flex items-start gap-3">
+                    <i class="fas fa-info-circle text-blue-600 mt-1"></i>
+                    <div>
+                        <h4 class="font-semibold text-blue-800 mb-1">Why do we ask for a reason?</h4>
+                        <p class="text-blue-700 text-sm">
+                            Providing feedback helps other users understand and improve their requests. 
+                            It also helps us make the platform better for everyone.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.form-select, .form-textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    background-color: white;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-select:focus, .form-textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+label {
+    display: block;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+</style>
+{% endblock %}
