@@ -11,7 +11,7 @@ from django.views.decorators.http import require_http_methods
 from django.core.exceptions import PermissionDenied
 
 from .models import SkillSwapRequest, SkillSwapSession, SessionReview
-from .forms import SkillSwapRequestForm, RequestResponseForm, SessionScheduleForm, SessionReviewForm, RequestRejectionForm
+from .forms import SkillSwapRequestForm, RequestResponseForm, SessionScheduleForm, SessionReviewForm, RequestRejectionForm, SessionRejectionForm
 from skills.models import OfferedSkill, DesiredSkill
 
 # Create your views here.
@@ -424,7 +424,7 @@ def cancel_request(request, pk):
             
             from django.contrib import messages
             messages.success(request, 'Request cancelled successfully!')
-            return redirect('skill_sessions:request_list')
+            return redirect('skill_sessions:sent_requests')
     else:
         form = RequestRejectionForm()
     
@@ -634,30 +634,53 @@ def cancel_session(request, pk):
             return JsonResponse({'success': False, 'error': 'You are not a participant in this session'})
         return redirect('skill_sessions:session_list')
     
-    # Determine the other participant (receiver of the notification)
-    other_participant = session.learner if request.user == session.teacher else session.teacher
+    if request.method == 'POST':
+        form = SessionRejectionForm(request.POST)
+        if form.is_valid():
+            # Determine the other participant (receiver of the notification)
+            other_participant = session.learner if request.user == session.teacher else session.teacher
+            
+            # Store cancellation reason and message
+            reason = form.cleaned_data['reason']
+            message = form.cleaned_data['message']
+            
+            # Create a comprehensive cancellation message
+            reason_text = dict(form.fields['reason'].choices)[reason]
+            full_message = f"Reason: {reason_text}"
+            if message:
+                full_message += f"\nDetails: {message}"
+            
+            session.status = 'cancelled'
+            # Store cancellation reason in session notes if needed
+            session.notes = f"Cancelled by {request.user.get_full_name() or request.user.username}. {full_message}"
+            session.save()
+            
+            # Reset the related request status to allow rescheduling
+            if hasattr(session, 'request') and session.request:
+                session.request.status = 'accepted'  # Keep it accepted so they can reschedule
+                session.request.save()
+            
+            # Create notification for the other participant
+            create_notification(
+                recipient=other_participant,
+                notification_type='session_cancelled',
+                title='Session Cancelled',
+                message=f'{request.user.get_full_name()} has cancelled the {session.skill.name} session scheduled for {session.scheduled_date.strftime("%B %d, %Y at %I:%M %p")}. {reason_text}. You can reschedule if needed.',
+                related_user=request.user,
+                related_object_id=session.id
+            )
+            
+            from django.contrib import messages
+            messages.success(request, 'Session cancelled successfully!')
+            return redirect('skill_sessions:my_sessions')
+    else:
+        form = SessionRejectionForm()
     
-    session.status = 'cancelled'
-    session.save()
-    
-    # Reset the related request status to allow rescheduling
-    if hasattr(session, 'request') and session.request:
-        session.request.status = 'accepted'  # Keep it accepted so they can reschedule
-        session.request.save()
-    
-    # Create notification for the other participant
-    create_notification(
-        recipient=other_participant,
-        notification_type='session_cancelled',
-        title='Session Cancelled',
-        message=f'{request.user.get_full_name()} has cancelled the {session.skill.name} session scheduled for {session.scheduled_date.strftime("%B %d, %Y at %I:%M %p")}. You can reschedule if needed.',
-        related_user=request.user,
-        related_object_id=session.id
-    )
-    
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return JsonResponse({'success': True, 'message': 'Session cancelled successfully', 'redirect_to_received': True})
-    return redirect('skill_sessions:request_management')
+    context = {
+        'form': form,
+        'session': session,
+    }
+    return render(request, 'skill_sessions/session_rejection.html', context)
 
 
 @login_required
