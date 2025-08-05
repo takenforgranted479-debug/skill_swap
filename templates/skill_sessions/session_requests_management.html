@@ -585,7 +585,6 @@ function submitRequestResponse(requestId, action) {
     .then(data => {
         if (data.success) {
             closeModal();
-            location.reload(); // Refresh to show updated status
             
             // Show success notification
             showNotification(data.message, 'success');
@@ -593,6 +592,15 @@ function submitRequestResponse(requestId, action) {
             // Trigger dashboard stats update
             if (window.triggerStatsUpdate) {
                 window.triggerStatsUpdate();
+            }
+            
+            // Redirect if provided, otherwise reload
+            if (data.redirect_url) {
+                setTimeout(() => {
+                    window.location.href = data.redirect_url;
+                }, 1500); // Wait 1.5 seconds to show the notification
+            } else {
+                location.reload(); // Refresh to show updated status
             }
         } else {
             showNotification(data.error || 'An error occurred', 'error');
