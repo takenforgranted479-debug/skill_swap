@@ -1,40 +1,111 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Find Tutors for {{ skill.name }} | Campus Skill-Swap{% endblock %}
+{% block title %}Find Teachers for {{ skill.name }} - Campus Skill-Swap{% endblock %}
+
+{% block extra_css %}
+<style>
+    .teacher-card {
+        transition: all 0.3s ease;
+        border: 1px solid #e5e7eb;
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    }
+    
+    .teacher-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        border-color: #3B82F6;
+    }
+    
+    .skill-header {
+        background: linear-gradient(135deg, {{ skill.category.color|default:'#3B82F6' }} 0%, #1D4ED8 100%);
+        border-radius: 20px;
+        color: white;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .btn-view-profile {
+        background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+        border: none;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-view-profile:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+        color: white;
+    }
+    
+    .btn-send-request {
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        border: none;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-send-request:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        color: white;
+    }
+    
+    .back-btn {
+        background: linear-gradient(135deg, #6B7280 0%, #4B5563 100%);
+        color: white;
+        border: none;
+        transition: all 0.3s ease;
+    }
+    
+    .back-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 5px 15px rgba(107, 114, 128, 0.3);
+        color: white;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<section class="gradient-bg relative overflow-hidden">
-    <div class="absolute inset-0 bg-black opacity-20"></div>
-    <div class="relative container mx-auto px-4 py-16 lg:py-24">
-        <div class="text-center text-white">
-            <nav class="mb-6">
-                <a href="{% url 'skills:skill_detail' skill.id %}" class="text-white hover:text-yellow-300 transition-colors">
-                    <i class="fas fa-arrow-left mr-2"></i>Back to {{ skill.name }}
-                </a>
-            </nav>
-            <div class="inline-block bg-{{ skill.category.color|default:'blue' }}-100 text-{{ skill.category.color|default:'blue' }}-800 px-4 py-1 rounded-full text-sm font-medium mb-4">
-                {{ skill.category.name }}
-            </div>
-            <h1 class="text-4xl lg:text-5xl font-bold mb-4">Find Tutors for {{ skill.name }}</h1>
-            <p class="text-lg lg:text-xl mb-6">Connect with experienced tutors who can help you master this skill</p>
+<div class="container mx-auto px-4 py-8">
+    <!-- Skill Header -->
+    <div class="skill-header text-center">
+        <div class="mb-4">
+            <i class="fas fa-search text-4xl"></i>
+        </div>
+        <h1 class="text-3xl font-bold mb-2">Find Teachers for {{ skill.name }}</h1>
+        <p class="text-lg opacity-90 max-w-2xl mx-auto mb-4">
+            Connect with experienced teachers who can help you master this skill
+        </p>
+        
+        <!-- Category Badge -->
+        <div class="inline-block bg-white bg-opacity-20 px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <i class="fas fa-tag mr-2"></i>{{ skill.category.name }}
+        </div>
+        
+        <!-- Stats -->
+        <div class="flex justify-center space-x-6">
             <div class="text-center">
-                <div class="text-3xl font-bold">{{ tutors|length }}</div>
-                <div class="text-sm opacity-90">Available Tutors</div>
+                <div class="text-2xl font-bold">{{ tutors|length }}</div>
+                <div class="text-sm opacity-80">Available Teachers</div>
             </div>
         </div>
     </div>
-    <div class="absolute top-20 left-10 w-20 h-20 bg-white opacity-10 rounded-full animate-bounce"></div>
-    <div class="absolute bottom-20 right-10 w-16 h-16 bg-yellow-300 opacity-20 rounded-full animate-pulse"></div>
-    <div class="absolute top-1/2 right-20 w-12 h-12 bg-green-400 opacity-15 rounded-full animate-bounce delay-75"></div>
-</section>
 
-<section class="py-12 bg-gray-50">
-    <div class="container mx-auto px-4">
-        {% if tutors %}
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {% for tutor in tutors %}
-                <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all transform hover:scale-105">
+    <!-- Back Button -->
+    <div class="mb-6">
+        <a href="{% url 'skills:skill_detail' skill.id %}" class="btn back-btn">
+            <i class="fas fa-arrow-left mr-2"></i>Back to {{ skill.name }}
+        </a>
+    </div>
+
+    <!-- Teachers Grid -->
+    {% if tutors %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for tutor in tutors %}
+            <div class="teacher-card rounded-lg p-6">
                     <div class="flex items-center mb-4">
                         <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xl font-bold">
                             {{ tutor.user.first_name.0|default:tutor.user.username.0|upper }}
@@ -77,57 +148,69 @@
                     </p>
                     
                     <div class="space-y-2">
-                        <a href="{% url 'skills:tutor_profile' tutor.user.id %}" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg text-center block hover:bg-blue-700 transition-colors">
+                        <a href="{% url 'skills:tutor_profile' tutor.user.id %}" class="btn btn-view-profile btn-sm w-full">
                             <i class="fas fa-user mr-2"></i>View Full Profile
                         </a>
                         {% if user.is_authenticated and user != tutor.user %}
-                            <a href="{% url 'skill_sessions:create_request' %}?recipient={{ tutor.user.id }}" class="w-full bg-green-600 text-white py-2 px-4 rounded-lg text-center hover:bg-green-700 transition-colors block">
+                            <a href="{% url 'skill_sessions:create_request' %}?recipient={{ tutor.user.id }}" class="btn btn-send-request btn-sm w-full">
                                 <i class="fas fa-paper-plane mr-2"></i>Send Request
                             </a>
                         {% endif %}
                     </div>
                 </div>
-                {% endfor %}
-            </div>
-            
-            <!-- Pagination -->
-            {% if is_paginated %}
-            <div class="mt-12 flex justify-center">
-                <nav class="flex space-x-2">
-                    {% if page_obj.has_previous %}
-                        <a href="?page=1" class="px-4 py-2 bg-white border rounded-lg hover:bg-gray-50 transition-colors">First</a>
-                        <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 bg-white border rounded-lg hover:bg-gray-50 transition-colors">Previous</a>
-                    {% endif %}
-                    
-                    <span class="px-4 py-2 bg-blue-600 text-white rounded-lg">
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <nav aria-label="Teachers pagination" class="mt-8">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">&laquo; First</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                    </li>
+                {% endif %}
+                
+                <li class="page-item active">
+                    <span class="page-link">
                         Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
                     </span>
-                    
-                    {% if page_obj.has_next %}
-                        <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 bg-white border rounded-lg hover:bg-gray-50 transition-colors">Next</a>
-                        <a href="?page={{ page_obj.paginator.num_pages }}" class="px-4 py-2 bg-white border rounded-lg hover:bg-gray-50 transition-colors">Last</a>
-                    {% endif %}
-                </nav>
-            </div>
-            {% endif %}
-        {% else %}
-            <div class="text-center bg-white rounded-lg p-12">
-                <i class="fas fa-user-slash text-gray-400 text-6xl mb-6"></i>
-                <h3 class="text-2xl font-semibold text-gray-700 mb-4">No Tutors Available Yet</h3>
-                <p class="text-gray-600 mb-6">Be the first to offer this skill and help others learn!</p>
-                {% if user.is_authenticated %}
-                    <a href="{% url 'skills:add_skill' %}" class="inline-block bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">
-                        <i class="fas fa-plus mr-2"></i>Offer This Skill
-                    </a>
-                {% else %}
-                    <a href="{% url 'accounts:login' %}" class="inline-block bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">
-                        <i class="fas fa-sign-in-alt mr-2"></i>Login to Offer Skills
-                    </a>
+                </li>
+                
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                    </li>
                 {% endif %}
-            </div>
+            </ul>
+        </nav>
         {% endif %}
-    </div>
-</section>
+    {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-16">
+            <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-user-slash text-gray-400 text-3xl"></i>
+            </div>
+            <h3 class="text-2xl font-semibold text-gray-700 mb-2">No Teachers Available Yet</h3>
+            <p class="text-gray-500 mb-6">Be the first to offer this skill and help others learn!</p>
+            {% if user.is_authenticated %}
+                <a href="{% url 'skills:add_skill' %}" class="btn btn-primary">
+                    <i class="fas fa-plus mr-2"></i>Offer This Skill
+                </a>
+            {% else %}
+                <a href="{% url 'accounts:login' %}" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Login to Offer Skills
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
 
 <!-- Request Modal -->
 <div id="requestModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">

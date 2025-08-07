@@ -133,13 +133,34 @@ class SkillCategoryListView(ListView):
     context_object_name = 'categories'
     
     def get_queryset(self):
-        return SkillCategory.objects.filter(is_active=True)
+        return SkillCategory.objects.filter(is_active=True).annotate(
+            skill_count=Count('skills'),
+            student_count=Count('skills__desired_by_users', distinct=True)
+        ).order_by('name')
 
 
 class SkillCategoryDetailView(DetailView):
     model = SkillCategory
     template_name = 'skills/category_detail.html'
     context_object_name = 'category'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        skills = self.object.skills.all().annotate(
+            teacher_count=Count('offered_by_users', distinct=True),
+            student_count=Count('desired_by_users', distinct=True)
+        ).order_by('name')
+        
+        context['skills'] = skills
+        
+        # Calculate totals
+        total_teachers = sum(skill.teacher_count for skill in skills)
+        total_students = sum(skill.student_count for skill in skills)
+        
+        context['total_teachers'] = total_teachers
+        context['total_students'] = total_students
+        
+        return context
 
 
 class OfferedSkillListView(LoginRequiredMixin, ListView):
@@ -464,10 +485,16 @@ class FindTutorsView(ListView):
     
     def get_queryset(self):
         skill_id = self.kwargs['skill_id']
-        return (OfferedSkill.objects
+        queryset = (OfferedSkill.objects
                 .filter(skill_id=skill_id, is_active=True)
                 .select_related('user', 'skill')
                 .order_by('-average_rating', '-total_sessions'))
+        
+        # Exclude the logged-in user if authenticated
+        if self.request.user.is_authenticated:
+            queryset = queryset.exclude(user=self.request.user)
+            
+        return queryset
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
