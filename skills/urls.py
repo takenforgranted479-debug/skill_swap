@@ -8,7 +8,9 @@ urlpatterns = [
     path('', views.SkillListView.as_view(), name='skill_list'),
     path('trending/more/', views.TrendingSkillsMoreView.as_view(), name='trending_skills_more'),
     path('categories/', views.SkillCategoryListView.as_view(), name='category_list'),
-    path('category/<int:category_id>/', views.SkillCategoryDetailView.as_view(), name='category_detail'),
+    path('category/<int:pk>/', views.SkillCategoryDetailView.as_view(), name='category_detail'),
+    path('category/<int:category_id>/skills/', views.CategorySkillsView.as_view(), name='category_skills'),
+    path('skill/<int:skill_id>/teachers/', views.SkillTeachersView.as_view(), name='skill_teachers'),
     path('<int:pk>/', views.SkillDetailView.as_view(), name='skill_detail'),
     
     # Add Skill

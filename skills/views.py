@@ -133,13 +133,84 @@ class SkillCategoryListView(ListView):
     context_object_name = 'categories'
     
     def get_queryset(self):
-        return SkillCategory.objects.filter(is_active=True)
+        from django.db.models import Count
+        return SkillCategory.objects.filter(is_active=True).annotate(
+            skills_count=Count('skills', distinct=True),
+            students_count=Count('skills__offered_by_users', distinct=True)
+        )
 
 
 class SkillCategoryDetailView(DetailView):
     model = SkillCategory
     template_name = 'skills/category_detail.html'
     context_object_name = 'category'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        category = self.get_object()
+        from django.db.models import Count
+        
+        # Get skills in this category with teacher counts
+        skills_with_stats = Skill.objects.filter(category=category).annotate(
+            teachers_count=Count('offered_by_users', distinct=True)
+        ).order_by('name')
+        
+        context['skills'] = skills_with_stats
+        return context
+
+
+class CategorySkillsView(ListView):
+    """View to show skills within a specific category"""
+    model = Skill
+    template_name = 'skills/category_skills.html'
+    context_object_name = 'skills'
+    paginate_by = 12
+    
+    def get_queryset(self):
+        from django.db.models import Count
+        category_id = self.kwargs.get('category_id')
+        return Skill.objects.filter(category_id=category_id).annotate(
+            teachers_count=Count('offered_by_users', distinct=True)
+        ).order_by('name')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        category_id = self.kwargs.get('category_id')
+        try:
+            context['category'] = SkillCategory.objects.get(id=category_id)
+        except SkillCategory.DoesNotExist:
+            context['category'] = None
+        return context
+
+
+class SkillTeachersView(ListView):
+    """View to show teachers for a specific skill (excluding logged-in user)"""
+    model = OfferedSkill
+    template_name = 'skills/skill_teachers.html'
+    context_object_name = 'teachers'
+    paginate_by = 12
+    
+    def get_queryset(self):
+        skill_id = self.kwargs.get('skill_id')
+        queryset = OfferedSkill.objects.filter(
+            skill_id=skill_id, 
+            is_active=True
+        ).select_related('user', 'skill').order_by('-average_rating', '-total_sessions')
+        
+        # Exclude the logged-in user if authenticated
+        if self.request.user.is_authenticated:
+            queryset = queryset.exclude(user=self.request.user)
+            
+        return queryset
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        skill_id = self.kwargs.get('skill_id')
+        try:
+            context['skill'] = Skill.objects.get(id=skill_id)
+        except Skill.DoesNotExist:
+            context['skill'] = None
+        return context
 
 
 class OfferedSkillListView(LoginRequiredMixin, ListView):

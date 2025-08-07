@@ -98,12 +98,18 @@
                         <a href="{% url 'skills:skill_list' %}" class="nav-link px-3 py-2 text-gray-700 hover:text-blue-600 transition-colors">
                             <i class="fas fa-graduation-cap mr-2"></i>Skills
                         </a>
+                        <a href="{% url 'skills:category_list' %}" class="nav-link px-3 py-2 text-gray-700 hover:text-blue-600 transition-colors">
+                            <i class="fas fa-th-large mr-2"></i>Categories
+                        </a>
                         <a href="{% url 'skill_sessions:session_management' %}" class="nav-link px-3 py-2 text-gray-700 hover:text-blue-600 transition-colors">
                             <i class="fas fa-calendar mr-2"></i>Sessions
                         </a>
                     {% else %}
                         <a href="{% url 'core:home' %}" class="nav-link px-3 py-2 text-gray-700 hover:text-blue-600 transition-colors">
                             Home
+                        </a>
+                        <a href="{% url 'skills:category_list' %}" class="nav-link px-3 py-2 text-gray-700 hover:text-blue-600 transition-colors">
+                            <i class="fas fa-th-large mr-2"></i>Categories
                         </a>
                         <a href="#features" class="nav-link px-3 py-2 text-gray-700 hover:text-blue-600 transition-colors">
                             Features

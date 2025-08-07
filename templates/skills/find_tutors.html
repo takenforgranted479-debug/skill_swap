@@ -81,7 +81,7 @@
                             <i class="fas fa-user mr-2"></i>View Full Profile
                         </a>
                         {% if user.is_authenticated and user != tutor.user %}
-                            <a href="{% url 'skill_sessions:create_request' %}?recipient={{ tutor.user.id }}" class="w-full bg-green-600 text-white py-2 px-4 rounded-lg text-center hover:bg-green-700 transition-colors block">
+                            <a href="{% url 'skill_sessions:create_request' tutor.user.id %}" class="w-full bg-green-600 text-white py-2 px-4 rounded-lg text-center hover:bg-green-700 transition-colors block">
                                 <i class="fas fa-paper-plane mr-2"></i>Send Request
                             </a>
                         {% endif %}

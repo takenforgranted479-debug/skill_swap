@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ category.name }} Skills | Campus Skill-Swap{% endblock %}
+
+{% block content %}
+<section class="gradient-bg relative overflow-hidden">
+    <div class="absolute inset-0 bg-black opacity-20"></div>
+    <div class="relative container mx-auto px-4 py-16 lg:py-24">
+        <div class="text-center text-white">
+            <nav class="mb-6">
+                <a href="{% url 'skills:category_list' %}" class="text-white hover:text-yellow-300 transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Categories
+                </a>
+            </nav>
+            <div class="inline-block bg-{{ category.color|default:'blue' }}-100 text-{{ category.color|default:'blue' }}-800 px-4 py-1 rounded-full text-sm font-medium mb-4">
+                <i class="{{ category.icon|default:'fas fa-star' }} mr-2"></i>{{ category.name }}
+            </div>
+            <h1 class="text-4xl lg:text-5xl font-bold mb-4">{{ category.name }} Skills</h1>
+            <p class="text-lg lg:text-xl mb-6">
+                {% if category.description %}
+                    {{ category.description }}
+                {% else %}
+                    Discover and master skills in {{ category.name|lower }}
+                {% endif %}
+            </p>
+            <div class="text-center">
+                <div class="text-3xl font-bold">{{ skills|length }}</div>
+                <div class="text-sm opacity-90">Available Skills</div>
+            </div>
+        </div>
+    </div>
+    <div class="absolute top-20 left-10 w-20 h-20 bg-white opacity-10 rounded-full animate-bounce"></div>
+    <div class="absolute bottom-20 right-10 w-16 h-16 bg-yellow-300 opacity-20 rounded-full animate-pulse"></div>
+    <div class="absolute top-1/2 right-20 w-12 h-12 bg-green-400 opacity-15 rounded-full animate-bounce delay-75"></div>
+</section>
+
+<section class="py-12 bg-gray-50">
+    <div class="container mx-auto px-4">
+        {% if skills %}
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {% for skill in skills %}
+                <div class="skill-card bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-2 group">
+                    <!-- Skill Image/Icon -->
+                    <div class="h-40 bg-gradient-to-br from-{{ category.color|default:'blue' }}-300 to-{{ category.color|default:'blue' }}-500 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-black opacity-10 group-hover:opacity-20 transition-opacity"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <i class="{{ category.icon|default:'fas fa-lightbulb' }} text-5xl text-white group-hover:scale-110 transition-transform duration-300"></i>
+                        </div>
+                        <!-- Decorative elements -->
+                        <div class="absolute top-3 right-3 w-6 h-6 bg-white opacity-20 rounded-full group-hover:scale-125 transition-transform duration-500"></div>
+                        <div class="absolute bottom-3 left-3 w-4 h-4 bg-white opacity-15 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+                        
+                        <!-- Teachers count badge -->
+                        {% if skill.teachers_count > 0 %}
+                        <div class="absolute top-3 left-3 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+                            {{ skill.teachers_count }} Teacher{{ skill.teachers_count|pluralize }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Skill Content -->
+                    <div class="p-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-3 group-hover:text-{{ category.color|default:'blue' }}-600 transition-colors">
+                            {{ skill.name }}
+                        </h3>
+                        
+                        {% if skill.description %}
+                            <p class="text-gray-600 text-sm mb-4 line-clamp-3">
+                                {{ skill.description }}
+                            </p>
+                        {% else %}
+                            <p class="text-gray-600 text-sm mb-4">
+                                Learn {{ skill.name|lower }} from experienced tutors and master this valuable skill.
+                            </p>
+                        {% endif %}
+                        
+                        <!-- Statistics -->
+                        <div class="flex justify-between items-center mb-4">
+                            <div class="text-center">
+                                <div class="text-xl font-bold text-{{ category.color|default:'blue' }}-600">{{ skill.teachers_count }}</div>
+                                <div class="text-xs text-gray-500">Teacher{{ skill.teachers_count|pluralize }}</div>
+                            </div>
+                            {% if skill.is_popular %}
+                                <div class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
+                                    <i class="fas fa-star mr-1"></i>Popular
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="space-y-2">
+                            <a href="{% url 'skills:skill_detail' skill.pk %}" class="w-full bg-{{ category.color|default:'blue' }}-600 text-white py-2 px-4 rounded-lg text-center block hover:bg-{{ category.color|default:'blue' }}-700 transition-colors">
+                                <i class="fas fa-info-circle mr-2"></i>View Details
+                            </a>
+                            {% if skill.teachers_count > 0 %}
+                                <a href="{% url 'skills:skill_teachers' skill.pk %}" class="w-full bg-green-600 text-white py-2 px-4 rounded-lg text-center block hover:bg-green-700 transition-colors">
+                                    <i class="fas fa-users mr-2"></i>Find Teachers
+                                </a>
+                            {% else %}
+                                <div class="w-full bg-gray-300 text-gray-500 py-2 px-4 rounded-lg text-center cursor-not-allowed">
+                                    <i class="fas fa-users mr-2"></i>No Teachers Yet
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center bg-white rounded-lg p-12">
+                <i class="fas fa-search text-gray-400 text-6xl mb-6"></i>
+                <h3 class="text-2xl font-semibold text-gray-700 mb-4">No Skills Available</h3>
+                <p class="text-gray-600 mb-6">There are currently no skills in the {{ category.name }} category.</p>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'skills:add_skill' %}" class="inline-block bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Add Skill
+                    </a>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}" class="inline-block bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Login to Add Skills
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<style>
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.skill-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.skill-card:hover {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.skill-card:hover .absolute {
+    animation: float 2s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+</style>
+
+{% endblock %}
