@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Teachers for {{ skill.name }} | Campus Skill-Swap{% endblock %}
+
+{% block content %}
+<section class="gradient-bg relative overflow-hidden">
+    <div class="absolute inset-0 bg-black opacity-20"></div>
+    <div class="relative container mx-auto px-4 py-16 lg:py-24">
+        <div class="text-center text-white">
+            <nav class="mb-6">
+                <a href="{% url 'skills:category_detail' skill.category.pk %}" class="text-white hover:text-yellow-300 transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to {{ skill.category.name }}
+                </a>
+            </nav>
+            <div class="inline-block bg-{{ skill.category.color|default:'blue' }}-100 text-{{ skill.category.color|default:'blue' }}-800 px-4 py-1 rounded-full text-sm font-medium mb-4">
+                {{ skill.category.name }}
+            </div>
+            <h1 class="text-4xl lg:text-5xl font-bold mb-4">Teachers for {{ skill.name }}</h1>
+            <p class="text-lg lg:text-xl mb-6">Connect with experienced teachers who can help you master {{ skill.name }}</p>
+            <div class="text-center">
+                <div class="text-3xl font-bold">{{ teachers|length }}</div>
+                <div class="text-sm opacity-90">Available Teacher{{ teachers|length|pluralize }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="absolute top-20 left-10 w-20 h-20 bg-white opacity-10 rounded-full animate-bounce"></div>
+    <div class="absolute bottom-20 right-10 w-16 h-16 bg-yellow-300 opacity-20 rounded-full animate-pulse"></div>
+    <div class="absolute top-1/2 right-20 w-12 h-12 bg-green-400 opacity-15 rounded-full animate-bounce delay-75"></div>
+</section>
+
+<section class="py-12 bg-gray-50">
+    <div class="container mx-auto px-4">
+        {% if teachers %}
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for teacher in teachers %}
+                <div class="teacher-card bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-2 group">
+                    <!-- Teacher Header -->
+                    <div class="h-32 bg-gradient-to-br from-{{ skill.category.color|default:'blue' }}-400 to-{{ skill.category.color|default:'blue' }}-600 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-black opacity-10 group-hover:opacity-20 transition-opacity"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center text-{{ skill.category.color|default:'blue' }}-600 text-2xl font-bold group-hover:scale-110 transition-transform duration-300">
+                                {{ teacher.user.first_name.0|default:teacher.user.username.0|upper }}
+                            </div>
+                        </div>
+                        <!-- Decorative elements -->
+                        <div class="absolute top-3 right-3 w-6 h-6 bg-white opacity-20 rounded-full group-hover:scale-125 transition-transform duration-500"></div>
+                        <div class="absolute bottom-3 left-3 w-4 h-4 bg-white opacity-15 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+                    </div>
+                    
+                    <!-- Teacher Content -->
+                    <div class="p-6">
+                        <div class="text-center mb-4">
+                            <h3 class="text-xl font-bold text-gray-800 mb-1 group-hover:text-{{ skill.category.color|default:'blue' }}-600 transition-colors">
+                                {{ teacher.user.first_name }} {{ teacher.user.last_name|default:teacher.user.username }}
+                            </h3>
+                            
+                            <!-- Rating -->
+                            <div class="flex items-center justify-center mb-2">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= teacher.average_rating|floatformat:0 %}
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                    {% else %}
+                                        <i class="far fa-star text-gray-300"></i>
+                                    {% endif %}
+                                {% endfor %}
+                                <span class="text-sm text-gray-600 ml-2">
+                                    {{ teacher.average_rating|floatformat:1 }} ({{ teacher.total_sessions }} session{{ teacher.total_sessions|pluralize }})
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Teacher badges -->
+                        <div class="flex flex-wrap gap-2 mb-4 justify-center">
+                            <span class="inline-block bg-{{ skill.category.color|default:'blue' }}-100 text-{{ skill.category.color|default:'blue' }}-800 px-3 py-1 rounded-full text-xs font-medium">
+                                {{ teacher.get_proficiency_level_display }}
+                            </span>
+                            <span class="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium">
+                                {{ teacher.years_of_experience }} year{{ teacher.years_of_experience|pluralize }} exp.
+                            </span>
+                            <span class="inline-block bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-medium">
+                                {{ teacher.get_teaching_preference_display }}
+                            </span>
+                        </div>
+                        
+                        <!-- Description -->
+                        {% if teacher.description %}
+                            <p class="text-gray-600 text-sm mb-6 line-clamp-3 text-center">
+                                {{ teacher.description }}
+                            </p>
+                        {% else %}
+                            <p class="text-gray-600 text-sm mb-6 text-center">
+                                Experienced {{ skill.name|lower }} teacher ready to help you learn!
+                            </p>
+                        {% endif %}
+                        
+                        <!-- Statistics -->
+                        <div class="grid grid-cols-3 gap-4 mb-6 text-center">
+                            <div>
+                                <div class="text-lg font-bold text-{{ skill.category.color|default:'blue' }}-600">{{ teacher.total_sessions }}</div>
+                                <div class="text-xs text-gray-500">Session{{ teacher.total_sessions|pluralize }}</div>
+                            </div>
+                            <div>
+                                <div class="text-lg font-bold text-green-600">{{ teacher.average_rating|floatformat:1 }}</div>
+                                <div class="text-xs text-gray-500">Rating</div>
+                            </div>
+                            <div>
+                                <div class="text-lg font-bold text-purple-600">{{ teacher.years_of_experience }}</div>
+                                <div class="text-xs text-gray-500">Years</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="space-y-2">
+                            <a href="{% url 'skills:tutor_profile' teacher.user.id %}" class="w-full bg-{{ skill.category.color|default:'blue' }}-600 text-white py-2 px-4 rounded-lg text-center block hover:bg-{{ skill.category.color|default:'blue' }}-700 transition-colors">
+                                <i class="fas fa-user mr-2"></i>View Profile
+                            </a>
+                            {% if user.is_authenticated and user != teacher.user %}
+                                <a href="{% url 'skill_sessions:create_request' teacher.user.id %}" class="w-full bg-green-600 text-white py-2 px-4 rounded-lg text-center block hover:bg-green-700 transition-colors">
+                                    <i class="fas fa-paper-plane mr-2"></i>Send Request
+                                </a>
+                            {% elif not user.is_authenticated %}
+                                <a href="{% url 'accounts:login' %}" class="w-full bg-green-600 text-white py-2 px-4 rounded-lg text-center block hover:bg-green-700 transition-colors">
+                                    <i class="fas fa-sign-in-alt mr-2"></i>Login to Request
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <div class="mt-12 flex justify-center">
+                <nav class="flex space-x-2">
+                    {% if page_obj.has_previous %}
+                        <a href="?page=1" class="px-4 py-2 bg-white border rounded-lg hover:bg-gray-50 transition-colors">First</a>
+                        <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 bg-white border rounded-lg hover:bg-gray-50 transition-colors">Previous</a>
+                    {% endif %}
+                    
+                    <span class="px-4 py-2 bg-{{ skill.category.color|default:'blue' }}-600 text-white rounded-lg">
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                    </span>
+                    
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 bg-white border rounded-lg hover:bg-gray-50 transition-colors">Next</a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}" class="px-4 py-2 bg-white border rounded-lg hover:bg-gray-50 transition-colors">Last</a>
+                    {% endif %}
+                </nav>
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center bg-white rounded-lg p-12">
+                <i class="fas fa-user-slash text-gray-400 text-6xl mb-6"></i>
+                <h3 class="text-2xl font-semibold text-gray-700 mb-4">No Teachers Available</h3>
+                <p class="text-gray-600 mb-6">
+                    {% if user.is_authenticated %}
+                        Be the first to offer {{ skill.name }} and help others learn!
+                    {% else %}
+                        No teachers are currently offering {{ skill.name }}. Login to offer this skill!
+                    {% endif %}
+                </p>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'skills:offered_add' %}" class="inline-block bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Offer This Skill
+                    </a>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}" class="inline-block bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Login to Offer Skills
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<style>
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.teacher-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.teacher-card:hover {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.teacher-card:hover .absolute {
+    animation: float 2s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+</style>
+
+{% endblock %}

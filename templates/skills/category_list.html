@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Skill Categories | Campus Skill-Swap{% endblock %}
+
+{% block content %}
+<section class="gradient-bg relative overflow-hidden">
+    <div class="absolute inset-0 bg-black opacity-20"></div>
+    <div class="relative container mx-auto px-4 py-16 lg:py-24">
+        <div class="text-center text-white">
+            <h1 class="text-4xl lg:text-5xl font-bold mb-4">Explore Skill Categories</h1>
+            <p class="text-lg lg:text-xl mb-6">Discover skills across different categories and find expert tutors</p>
+            <div class="text-center">
+                <div class="text-3xl font-bold">{{ categories|length }}</div>
+                <div class="text-sm opacity-90">Available Categories</div>
+            </div>
+        </div>
+    </div>
+    <div class="absolute top-20 left-10 w-20 h-20 bg-white opacity-10 rounded-full animate-bounce"></div>
+    <div class="absolute bottom-20 right-10 w-16 h-16 bg-yellow-300 opacity-20 rounded-full animate-pulse"></div>
+    <div class="absolute top-1/2 right-20 w-12 h-12 bg-green-400 opacity-15 rounded-full animate-bounce delay-75"></div>
+</section>
+
+<section class="py-12 bg-gray-50">
+    <div class="container mx-auto px-4">
+        {% if categories %}
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {% for category in categories %}
+                <div class="category-card bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-2 group cursor-pointer">
+                    <a href="{% url 'skills:category_detail' category.pk %}" class="block">
+                        <!-- Category Image/Icon -->
+                        <div class="h-48 bg-gradient-to-br from-{{ category.color|default:'blue' }}-400 to-{{ category.color|default:'blue' }}-600 relative overflow-hidden">
+                            <div class="absolute inset-0 bg-black opacity-10 group-hover:opacity-20 transition-opacity"></div>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <i class="{{ category.icon|default:'fas fa-star' }} text-6xl text-white group-hover:scale-110 transition-transform duration-300"></i>
+                            </div>
+                            <!-- Decorative elements -->
+                            <div class="absolute top-4 right-4 w-8 h-8 bg-white opacity-20 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+                            <div class="absolute bottom-4 left-4 w-6 h-6 bg-white opacity-15 rounded-full group-hover:scale-125 transition-transform duration-700"></div>
+                        </div>
+                        
+                        <!-- Category Content -->
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-gray-800 mb-3 group-hover:text-{{ category.color|default:'blue' }}-600 transition-colors">
+                                {{ category.name }}
+                            </h3>
+                            
+                            {% if category.description %}
+                                <p class="text-gray-600 text-sm mb-4 line-clamp-3">
+                                    {{ category.description }}
+                                </p>
+                            {% else %}
+                                <p class="text-gray-600 text-sm mb-4">
+                                    Explore skills in {{ category.name|lower }} and connect with expert tutors.
+                                </p>
+                            {% endif %}
+                            
+                            <!-- Statistics -->
+                            <div class="flex justify-between items-center mb-4">
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-{{ category.color|default:'blue' }}-600">{{ category.skills_count }}</div>
+                                    <div class="text-xs text-gray-500">Skill{{ category.skills_count|pluralize }}</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-green-600">{{ category.students_count }}</div>
+                                    <div class="text-xs text-gray-500">Teacher{{ category.students_count|pluralize }}</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Action Button -->
+                            <div class="flex space-x-2">
+                                <div class="flex-1 bg-{{ category.color|default:'blue' }}-600 text-white py-2 px-4 rounded-lg text-center text-sm font-medium group-hover:bg-{{ category.color|default:'blue' }}-700 transition-colors">
+                                    <i class="fas fa-eye mr-2"></i>View Skills
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center bg-white rounded-lg p-12">
+                <i class="fas fa-folder-open text-gray-400 text-6xl mb-6"></i>
+                <h3 class="text-2xl font-semibold text-gray-700 mb-4">No Categories Available</h3>
+                <p class="text-gray-600 mb-6">There are currently no skill categories to display.</p>
+                {% if user.is_authenticated and user.is_staff %}
+                    <a href="/admin/skills/skillcategory/" class="inline-block bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Add Category
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<style>
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.category-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.category-card:hover {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.category-card:hover .absolute {
+    animation: float 2s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+</style>
+
+{% endblock %}
